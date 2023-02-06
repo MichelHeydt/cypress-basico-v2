@@ -79,7 +79,7 @@ describe('Central de Atendimento ao Cliente TAT', function() {
     })
 
     it('utilizando select para campos suspensos', () => {
-        cy.get('#product').select('YouTube').should('have.value', 'youtube')
+        cy.get('#product').select('YouTube').should('have.value', 'Uoutube')
     });
 
     it('utilizando select para campos suspensos por VALUE', () => {
@@ -144,7 +144,7 @@ describe('Central de Atendimento ao Cliente TAT', function() {
         cy.get('#privacy a')
          .invoke('removeAttr', 'target')
          .click()
-        cy.contains('Talking About Testin').should('be.visible')
+        cy.contains('Talking About Testing').should('be.visible')
     });
 
 
