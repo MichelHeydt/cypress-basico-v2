@@ -1,7 +1,8 @@
 /// <reference types="Cypress" />
 
 describe('Central de Atendimento ao Cliente TAT', function() {
-    
+    const THREE_SECONDS_IN_MS = 3000
+
     beforeEach(function() {
         cy.visit('./src/index.html')
       })
@@ -12,36 +13,52 @@ describe('Central de Atendimento ao Cliente TAT', function() {
 
     //exercício 1
     it('preenche os campos obrigatórios e envia o formulário', () => {
-        const longText = 'Automação de testes de regressão utilizando Ruby+Capybara+Cucumber; Criação de BDD´s para abertura de tasks e automação utilizando cucumber; Testes manuais/regressão/exploratórios em aplicações Web; Testes manuais de API utilizando Postman; Testes E2E do produto, validando'
+        const longText = Cypress._.repeat('Automação de testes', 20) //Comando Cypress._.repeat, vai repetir a string pela qtd de vezes que passar no parâmetro
+        
+        cy.clock()  //congela o relógio do navegador
+
         cy.get('#firstName').type('Michel')
         cy.get('#lastName').type('Heydt')
         cy.get('#email').type('michel@cvc.com.br')
         cy.get('#open-text-area').type(longText, {delay: 0}) //delay = 0 para digitar um texto longo imediatamente.
+        
         cy.contains('button', 'Enviar').click()
         cy.get('.success').should('be.visible')
+        cy.tick(THREE_SECONDS_IN_MS)   //adianta o relógio do navegador em 3 segundos
+        cy.get('.success').should('not.be.visible')
     });
 
     //exercício extra 2
     it('exibe mensagem de erro ao submeter o formulário com um email com formatação inválida', () => {
+        cy.clock()  //congela o relógio do navegador
+        
         cy.get('#firstName').type('Michel')
         cy.get('#lastName').type('Heydt')
         cy.get('#email').type('michelcvc.com.br')
         cy.contains('button', 'Enviar').click()
         cy.get('.error').should('be.visible')
+        cy.tick(THREE_SECONDS_IN_MS)   //adianta o relógio do navegador em 3 segundos
+        cy.get('.error').should('not.be.visible')
     });
 
     //exercício extra 3
     it('valida campo de telefone quando digita campo não númerico', () => {
+        cy.clock()  //congela o relógio do navegador
+        
         cy.get('#firstName').type('Michel')
         cy.get('#lastName').type('Heydt')
         cy.get('#email').type('michelcvc.com.br')
         cy.get('#phone').type('testetelefone').should('have.value', '')
         cy.contains('button', 'Enviar').click()
         cy.get('.error').should('be.visible')
+        cy.tick(THREE_SECONDS_IN_MS)   //adianta o relógio do navegador em 3 segundos
+        cy.get('.error').should('not.be.visible')
     });
 
     //exercício extra 4
     it('exibe mensagem de erro quando o telefone se torna obrigatório mas não é preenchido antes do envio do formulário', () => {
+        cy.clock()  //congela o relógio do navegador
+        
         cy.get('#firstName').type('Michel')
         cy.get('#lastName').type('Heydt')
         cy.get('#email').type('michelcvc.com.br')
@@ -50,6 +67,8 @@ describe('Central de Atendimento ao Cliente TAT', function() {
          .should('be.checked')
         cy.contains('button', 'Enviar').click()
         cy.get('.error').should('be.visible')
+        cy.tick(THREE_SECONDS_IN_MS)   //adianta o relógio do navegador em 3 segundos
+        cy.get('.error').should('not.be.visible')
     });
 
     //exercício extra 5
@@ -62,20 +81,32 @@ describe('Central de Atendimento ao Cliente TAT', function() {
 
     //exercício extra 6
     it('exibe mensagem de erro ao submeter o formulário sem preencher os campos obrigatórios', () => {
+        cy.clock()  //congela o relógio do navegador
+
         cy.contains('button', 'Enviar').click()
         cy.get('.error').should('be.visible')
+        cy.tick(THREE_SECONDS_IN_MS)   //adianta o relógio do navegador em 3 segundos
+        cy.get('.error').should('not.be.visible')
     });
 
     //exercício extra 7 (Comandos customizados)
     it('envia o formuário com sucesso usando um comando customizado', () => {
         cy.fillMandatoryFieldsAndSubmit()
+        cy.clock()  //congela o relógio do navegador
+        cy.contains('button', 'Enviar').click()
         cy.get('.success').should('be.visible')
+        cy.tick(3000)   //adianta o relógio do navegador em 3 segundos
     })
 
     //exercício extra 8 (Contains)
     it('envia o formuário com sucesso usando um comando customizado', () => {
+        cy.clock()  //congela o relógio do navegador
+        
         cy.fillMandatoryFieldsAndSubmit()
+        cy.contains('button', 'Enviar').click()
         cy.get('.success').should('be.visible')
+        cy.tick(THREE_SECONDS_IN_MS)   //adianta o relógio do navegador em 3 segundos
+        cy.get('.success').should('not.be.visible')
     })
 
     it('utilizando select para campos suspensos', () => {
@@ -147,5 +178,44 @@ describe('Central de Atendimento ao Cliente TAT', function() {
         cy.contains('Talking About Testing').should('be.visible')
     });
 
+    it('exibe e esconde as mensagens de sucesso e erro usando o .invoke', () => {
+        cy.get('.success')
+          .should('not.be.visible')
+          .invoke('show')
+          .should('be.visible')
+          .and('contain', 'Mensagem enviada com sucesso.')  //recurso "and" é usado para validar junto com o should
+          .invoke('hide')
+          .should('not.be.visible')
+        cy.get('.error')
+          .should('not.be.visible')
+          .invoke('show')
+          .should('be.visible')
+          .and('contain', 'Valide os campos obrigatórios!')   //recurso "and" é usado para validar junto com o should  
+          .invoke('hide')
+          .should('not.be.visible')
+      })
+
+      it('preenche a area de texto usando o comando invoke', () => {
+        const longText = Cypress._.repeat('Automação de testes', 20)
+        cy.get('#open-text-area')
+         .invoke('val', longText)   //utilizando o invoke irá setar o valor no campo area instantaneamente
+         .should('have.value', longText)
+      });
+
+      it('faz uma requisição HTTP(API)', () => {
+        cy.request('https://cac-tat.s3.eu-central-1.amazonaws.com/index.html')  //Faz a requisição do tipo GET
+         .should(function(response){
+            const {status, statusText, body} = response //Desestruturando a requisição e armazendo nas constantes
+            expect(status).to.equal(200)
+            expect(statusText).to.equal('OK')
+            expect(body).to.include('CAC TAT')
+         })
+      });
+
+      it('encontra o gato escondido', () => {
+        cy.get('#cat')
+         .invoke('show')
+         .should('be.visible')
+      });
 
 })
